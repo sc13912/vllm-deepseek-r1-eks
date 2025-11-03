@@ -30,14 +30,6 @@ spec:
               # NCCL configuration for distributed training
               - name: NCCL_DEBUG
                 value: "INFO"
-              - name: NCCL_IB_DISABLE
-                value: "1"
-              - name: NCCL_P2P_DISABLE
-                value: "1"
-              - name: NCCL_NET_GDR_LEVEL
-                value: "0"
-              - name: NCCL_SHM_DISABLE
-                value: "1"
               # EFA-specific environment variables
               - name: FI_PROVIDER
                 value: "efa"
@@ -68,7 +60,7 @@ spec:
                 set -x
 
                 # Start ray leader
-                ray start --head --port=6379 --num-cpus=48 --num-gpus=8
+                ray start --head --port=6379 --num-cpus=96 --num-gpus=8
                 sleep 10
                 ray status
                 fi_info -p efa
@@ -119,7 +111,7 @@ spec:
         - name: dshm
           emptyDir:
             medium: Memory
-            sizeLimit: "30Gi"  # Increase shared memory size
+            sizeLimit: "512Gi"  # Increase shared memory size
         nodeSelector:
           role: large-model-worker
         # Add tolerations for EFA
@@ -137,31 +129,6 @@ spec:
               capabilities:
                 add: ["IPC_LOCK"]
             env:
-              # Ray configuration
-              - name: RAY_DISABLE_RUNTIME_ENV
-                value: "1"
-              - name: RAY_SCHEDULER_EVENTS
-                value: "0"
-              - name: RAY_WORKER_REGISTER_TIMEOUT_SECONDS
-                value: "300"
-              # NCCL configuration for distributed training
-              - name: NCCL_DEBUG
-                value: "INFO"
-              - name: NCCL_IB_DISABLE
-                value: "1"
-              - name: NCCL_P2P_DISABLE
-                value: "1"
-              - name: NCCL_NET_GDR_LEVEL
-                value: "0"
-              - name: NCCL_SHM_DISABLE
-                value: "1"
-              # EFA-specific environment variables
-              - name: FI_PROVIDER
-                value: "efa"
-              - name: FI_EFA_USE_DEVICE_RDMA
-                value: "1"
-              - name: FI_EFA_FORK_SAFE
-                value: "1"
               # Hugging Face configuration
               - name: TRANSFORMERS_CACHE
                 value: "/mnt/fsx/models"
@@ -185,7 +152,7 @@ spec:
                 set -x
                 
                 # Start ray worker
-                ray start --address=$(LWS_LEADER_ADDRESS):6379 --num-cpus=48 --num-gpus=8 --block
+                ray start --address=$(LWS_LEADER_ADDRESS):6379 --num-cpus=96 --num-gpus=8 --block
             resources:
               limits:
                 nvidia.com/gpu: "8"
@@ -211,7 +178,7 @@ spec:
         - name: dshm
           emptyDir:
             medium: Memory
-            sizeLimit: "30Gi"  # Increase shared memory size
+            sizeLimit: "512Gi"  # Increase shared memory size
         nodeSelector:
           role: large-model-worker
         # Add tolerations for EFA
